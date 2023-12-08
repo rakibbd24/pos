@@ -1,0 +1,32 @@
+
+      Create product
+
+			$table->id(); // Auto-incremental primary key
+			$table->string('product_name');
+			$table->decimal('product_cost', 10, 2); ----------its added on expense
+			$table->string('product_code');
+			$table->string('email_login');
+			$table->string('email_password');
+			$table->string('account_email');
+			$table->string('account_password');
+			$table->string('passcode_pin');
+			$table->string('number_company');
+			$table->string('number_email_username');
+			$table->string('number_password');
+			$table->string('phone_number');"
+      $table->string('note');
+			$table->string('attachment');-------- You need to upload multiple file as group and use cdn on https://cloudinary.com/
+			$table->string('proxy_ip_host');
+			$table->integer('port');
+			$table->string('proxy_username');
+			$table->string('proxy_password');
+      $table->string('status',0,1); (if 1 then product is able for sale else product is sold-out)
+      $table->timestamps();
+
+
+.Pos> billing system need to add custom pricing filed when we are billed for customer
+
+Management
+
+
+
