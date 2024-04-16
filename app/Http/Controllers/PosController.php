@@ -55,38 +55,38 @@ class PosController extends Controller
 
 
      //--------------------- index  ------------------------\\
-
      public function index(Request $request)
      {
-
-        $user_auth = auth()->user();
-
-       if ($user_auth->can('pos')){
-
-            $helpers = new helpers();
-            $currency = $helpers->Get_Currency();
-            $symbol_placement = $helpers->get_symbol_placement();
-
-            $products = product_warehouse::with('warehouse', 'product', 'productVariant')
-                                                        ->where('warehouse_id', '1')
-                                                        ->where('deleted_at', '=', null)
-                                                        ->where(function ($query) use ($request) {
-                                                            return $query->where('qte', '>', 0)->orWhere('manage_stock', false);
-                                                        })
-                                                        ->orderBy('product_id', 'DESC')
-                                                        ->paginate(9);
-            // $products = Product::latest()->paginate(9);
-            $clients = Client::where('deleted_at', '=', null)->get(['id', 'username']);
-            $payment_methods = PaymentMethod::where('deleted_at', '=', null)->orderBy('id', 'desc')->get(['id','title']);
-            $accounts = Account::where('deleted_at', '=', null)->orderBy('id', 'desc')->get(['id','account_name']);
-            return view('sales.pos-new', compact('products', 'clients', 'currency', 'symbol_placement', 'payment_methods', 'accounts'));
-
-
-        }else{
-            return abort('403', __('You are not authorized'));
-        }
+         $user_auth = auth()->user();
+     
+         if ($user_auth->can('pos')){
+             $helpers = new helpers();
+             $currency = $helpers->Get_Currency();
+             $symbol_placement = $helpers->get_symbol_placement();
+     
+             $products = product_warehouse::with('warehouse', 'product', 'productVariant')
+                 ->where('warehouse_id', '1')
+                 ->where('deleted_at', '=', null)
+                 ->where(function ($query) use ($request) {
+                     return $query->where('qte', '>', 0)->orWhere('manage_stock', false);
+                 })
+                 ->orderBy('product_id', 'DESC')
+                 ->paginate(9);
+     
+             $clients = Client::where('deleted_at', '=', null)->get(['id', 'username']);
+             $payment_methods = PaymentMethod::where('deleted_at', '=', null)->orderBy('id', 'desc')->get(['id','title']);
+             $accounts = Account::where('deleted_at', '=', null)->orderBy('id', 'desc')->get(['id','account_name']);
+     
+             // Retrieve account holders
+             $accountHolders = $products->pluck('product.account_holder');
+     
+             return view('sales.pos-new', compact('products', 'clients', 'currency', 'symbol_placement', 'payment_methods', 'accounts', 'accountHolders'));
+     
+         } else {
+             return abort('403', __('You are not authorized'));
+         }
      }
-
+     
     //------------ Create New  POS --------------\\
 
     public function CreatePOS(Request $request)

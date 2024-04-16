@@ -199,6 +199,7 @@
                                             @endif
                                             <div class="card-body pos-card-product">
                                                 <p class="text-gray-600">{{ $product->product->name }}</p>
+                                                <p class="text-gray-600">➡️{{ $product->product->account_holder}}</p>
                                             </div>
                                         </div>
                                     </div>
