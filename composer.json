@@ -5,7 +5,7 @@
     "keywords": ["framework", "laravel"],
     "license": "MIT",
     "require": {
-        "php": "^7.3|^8.0",
+        "php": "^7.3|^8.2",
         "ar-php/ar-php": "^1.0",
         "barryvdh/laravel-dompdf": "^1.0",
         "cloudinary-labs/cloudinary-laravel": "1.0.4",

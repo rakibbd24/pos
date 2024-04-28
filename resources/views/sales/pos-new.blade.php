@@ -140,7 +140,7 @@
                                             @endif
                                         </div>
                                     </div>
-                                    <div class="col-6 mt-2">
+                                    <div class="col-12 mt-2">
                                         <label for="exampleFormControlInput1" class="form-label">Payment Choice <span class="text-warning">*</span></label>
                                         <select name="payment_method_id" required>
                                             <option value="">Choose Payment Choice</option>
@@ -149,7 +149,7 @@
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="col-6 mt-2">
+                                    <div class="col-6 mt-2 d-none">
                                         <label for="exampleFormControlInput1" class="form-label">Account <span class="text-warning">*</span></label>
                                         <select name="account_id" required>
                                             <option value="">Choose Account</option>

@@ -820,6 +820,7 @@ class ComposerStaticInit04f7928b85acd43e9b1b9994a4b23141
         'App\\Models\\EmailMessage' => __DIR__ . '/../..' . '/app/Models/EmailMessage.php',
         'App\\Models\\Expense' => __DIR__ . '/../..' . '/app/Models/Expense.php',
         'App\\Models\\ExpenseCategory' => __DIR__ . '/../..' . '/app/Models/ExpenseCategory.php',
+        'App\\Models\\File' => __DIR__ . '/../..' . '/app/Models/File.php',
         'App\\Models\\PaymentMethod' => __DIR__ . '/../..' . '/app/Models/PaymentMethod.php',
         'App\\Models\\PaymentPurchase' => __DIR__ . '/../..' . '/app/Models/PaymentPurchase.php',
         'App\\Models\\PaymentPurchaseReturns' => __DIR__ . '/../..' . '/app/Models/PaymentPurchaseReturns.php',

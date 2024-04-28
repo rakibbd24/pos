@@ -45,10 +45,14 @@
                         </div>
 
                         <div class="form-group col-md-4">
-                            <label for="account_holder">Account Holder<span
+                            <label for="name">Account Holder<span
                                     class="field_required">*</span></label>
-                            <input type="text" class="form-control"
-                                placeholder="Account Holder" name="account_holder" required>
+                           <select name="account_holder" id="p_account_holder">
+                                <option value="">Select Account Holder</option>
+                                @foreach ($products as $p_data)
+                                    <option value="{{ $p_data->account_holder }}">{{ $p_data->account_holder }}</option>
+                                @endforeach
+                           </select>
                         </div>
 
                         <div class="form-group col-md-4">
@@ -221,8 +225,8 @@
                             <label>Use existing attatchment</label>
                             <select name="existing_attatchment_id" id="p_att">
                                 <option value="">Select existing attatchment</option>
-                                @foreach ($data_items as $ditem)
-                                <option value="{{ $ditem->name }}">{{ $ditem->name }}</option>
+                                @foreach ($folders as $ditem)
+                                <option value="{{ $ditem->existing_attatchment_id }}">{{ $ditem->existing_attatchment_id }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -287,8 +291,13 @@
         $(function () {
         $("#p_att").selectize({ });
         $("#p_profile").selectize({
-                        create: true,
-                        });
+            create: true,
         });
+
+        $("#p_account_holder").selectize({
+            create: true,
+        });
+        });
+
     </script>
 @endsection

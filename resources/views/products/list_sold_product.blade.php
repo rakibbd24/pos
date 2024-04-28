@@ -352,6 +352,33 @@
 
     })
 
+    function unsold(sale_id)
+    {
+
+        swal({
+            title: 'Are you sure to unsold this product?',
+            text: 'All sale related data with this item will back as previous.',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0CC27E',
+            cancelButtonColor: '#FF586B',
+            confirmButtonText: 'Unsold',
+            cancelButtonText: '{{ __('translate.No_cancel') }}',
+            confirmButtonClass: 'btn btn-primary me-5',
+            cancelButtonClass: 'btn btn-danger',
+            buttonsStyling: false
+        }).then(function () {
+            axios
+                  .delete("/sale/sales/" + sale_id)
+                  .then(() => {
+                      toastr.success('Product Unsold Succefully!');
+                      window.location.href = '/products/sold';
+                  })
+                  .catch(() => {
+                      toastr.error('{{ __('translate.There_was_something_wronge') }}');
+                  });
+        });
+    }
 </script>
 
 

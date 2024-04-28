@@ -17,7 +17,9 @@ use App\Models\Warehouse;
 use App\Models\UserWarehouse;
 use App\Models\Currency;
 use App\Models\Expense;
+use App\Models\File as ModelsFile;
 use App\Models\productProfile;
+use App\Models\SaleDetail;
 use DataTables;
 use Excel;
 use DB;
@@ -28,12 +30,18 @@ use Cloudinary\Api\Upload\UploadApi;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Support\Facades\DB as FacadesDB;
 use Illuminate\Support\Facades\Log;
 use JildertMiedema\LaravelPlupload\Facades\Plupload;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use ZipArchive;
 
 use function PHPUnit\Framework\fileExists;
+
+use Maatwebsite\Excel\Facades\Excel as importExcel;
+use Maatwebsite\Excel\HeadingRowImport;
+use stdClass;
 
 class ProductsController extends Controller
 {
@@ -485,6 +493,9 @@ class ProductsController extends Controller
                     if ($user_auth->can('products_delete')){
                         $item['action'] .= '  <a class="delete dropdown-item cursor-pointer" id="' .$product->id. '"><i class="nav-icon i-Close-Window text-danger font-weight-bold mr-3"></i> ' .trans('translate.delete_product').'</a>';
                     }
+
+                    $get_sale = SaleDetail::where('product_id', $product->id)->first();
+                    $item['action'] .= '  <a class=" dropdown-item cursor-pointer" onclick="unsold(' .$get_sale->sale_id. ')"><i class="nav-icon i-Close-Window text-danger font-weight-bold mr-3"></i> Unsold</a>';
                     $item['action'] .= '</div>';
 
 
@@ -743,13 +754,18 @@ class ProductsController extends Controller
         $user_auth = auth()->user();
 		if ($user_auth->can('products_add')){
 
-            $api = (new AdminApi())->subfolders("products");
-            $json = json_encode($api);
-            $decoded_data = json_decode($json);
+            // $api = (new AdminApi())->subfolders("products");
+            // $json = json_encode($api);
+            // $decoded_data = json_decode($json);
 
-            $data_items = $decoded_data->folders;
+            // $data_items = $decoded_data->folders;
             $profiles = productProfile::all();
-            return view('products.create_new_product', compact('data_items', 'profiles'));
+            $products =  Product::all();
+            $folders =  FacadesDB::table('products')
+                                    ->select('existing_attatchment_id')
+                                    ->groupBy('existing_attatchment_id')
+                                    ->get();
+            return view('products.create_new_product', compact('profiles', 'products', 'folders'));
 
         }
         return abort('403', __('You are not authorized'));
@@ -774,14 +790,22 @@ class ProductsController extends Controller
                     }else{
                         $product_name = $request->name;
                     }
+
+                    $rand_1 = rand(1000000000,9999999999);
+                    $rand_2 = rand(1000000000,9999999999);
+                    $rand_3 = rand(1000000000,9999999999);
+                    $finalRand = $rand_1.$rand_2.$rand_3;
+                    $finalRand = substr($finalRand, -8);
+                    $finalRand = str_shuffle($finalRand);
+
                     //-- Create New Product
                     $Product = new Product;
 
                     //-- Field Required
                     $Product->type                   = 'is_single';
-                    $Product->code                   = rand(11111111,99999999);
+                    $Product->code                   = $finalRand;
                     $Product->Type_barcode           = "CODE128";
-                    $Product->name                   = $request->name;
+                    $Product->name                   = $product_name;
                     $Product->account_holder         = $request->account_holder;
                     $Product->email                  = $request->email;
                     $Product->email_password         = $request->email_password;
@@ -806,7 +830,7 @@ class ProductsController extends Controller
                     $Product->unit_id                = '1';
                     $Product->unit_sale_id           = '1';
                     $Product->unit_purchase_id       = '1';
-                    //$Product->save();
+                    $Product->save();
 
                      // Expense Data
                      Expense::create([
@@ -823,37 +847,55 @@ class ProductsController extends Controller
                     //FOLDER CREATE
                     if($request['attatchement_folder_name'] != NULL)
                     {
-                        $result = (new AdminApi())->createFolder('products/'.$request['attatchement_folder_name']);
-                        $json =  json_encode($result);
-                        $data = json_decode($json);
+                        // $result = (new AdminApi())->createFolder('products/'.$request['attatchement_folder_name']);
+                        // $json =  json_encode($result);
+                        // $data = json_decode($json);
 
-                        $json =  json_encode($result);
-                        $data = json_decode($json);
+                        // $json =  json_encode($result);
+                        // $data = json_decode($json);
 
-                        $existing_attatchment_id = $data->name;
+                        $existing_attatchment_id = $request['attatchement_folder_name'];
+
+                        //CREATE FOLDER
+                        if(!file_exists(public_path('storage/products/'.$request['attatchement_folder_name'])))
+                        {
+                            //CREATEING UPLOAD FILE IF NOT EXISTS
+                            Storage::disk('public')->makeDirectory('storage/products/'.$request['attatchement_folder_name']);
+                        }
                     }else{
                         $existing_attatchment_id = $request->existing_attatchment_id;
                     }
 
                     if($profile != null)
                     {
-                        $image = $request->file('image');
-                        $result = (new UploadApi())->upload($profile->image, [
-                            'folder' => 'products/'.$existing_attatchment_id.'/',
-                            'resource_type' => 'image']);
-                        $json =  json_encode($result);
-                        $data = json_decode($json);
-                        $data_profile_image = $data->secure_url;
+                        $data_profile_image = $profile->image;
                     }else{
                         if ($request->hasFile('image')) {
-
                             $image = $request->file('image');
-                            $result = (new UploadApi())->upload($request->file('image')->getRealPath(), [
-                                'folder' => 'products/'.$existing_attatchment_id.'/',
-                                'resource_type' => 'image']);
-                            $json =  json_encode($result);
-                            $data = json_decode($json);
-                            $data_profile_image = $data->secure_url;
+                            // $result = (new UploadApi())->upload($request->file('image')->getRealPath(), [
+                            //     'folder' => 'products/'.$existing_attatchment_id.'/',
+                            //     'resource_type' => 'image']);
+                            // $json =  json_encode($result);
+                            // $data = json_decode($json);
+                            // $data_profile_image = $data->secure_url;
+
+
+                            //GENERATING FILE NAME
+                            $uploadedFile = $request->file('image');
+                            $fileType = strtolower($uploadedFile->getClientOriginalExtension());
+                            $rand_1 = rand(1000000000,9999999999);
+                            $rand_2 = rand(1000000000,9999999999);
+                            $rand_3 = rand(1000000000,9999999999);
+                            $finalRand = $rand_1.$rand_2.$rand_3;
+                            $finalRand = str_shuffle($finalRand);
+                            $fileName = str_shuffle(substr($finalRand, -10)).'.'.$fileType;
+
+                            //UPLOAD IMAGE
+                            $request->file('image')->move(
+                                public_path('storage/products/'.$existing_attatchment_id), $fileName
+                            );
+
+                            $data_profile_image = url('storage/products/'.$existing_attatchment_id.'/'.$fileName);
                         } else {
                             $filename = 'no_image.png';
                             $data_profile_image = $filename;
@@ -872,48 +914,45 @@ class ProductsController extends Controller
                         $Product->secure_url = $get_existing_attatchment_id->secure_url;
                         $Product->save();
                     }else{
-                        //UPLOAD PROFILE IMAGE
-                        //ZIP FILE UPLOAD IN CLOUDENERY
-                        $zip = new ZipArchive;
-                        $zipFileName = rand(111111,999999).".zip";
+                         //CREATE FOLDER
+                        if(!file_exists(public_path('product_upload/'.$existing_attatchment_id)))
+                        {
+                            //CREATEING UPLOAD FILE IF NOT EXISTS
+                            // Storage::disk('public')->makeDirectory('products/'.$request['attatchement_folder_name']);
+                            mkdir(public_path('product_upload/'.$existing_attatchment_id));
+                        }
+
                         $files = File::files(public_path('product_upload'));
 
                         if(count($files) > 0)
                         {
-                            if ($zip->open(public_path('product_upload/zip/'.$zipFileName), ZipArchive::CREATE) === TRUE) {
-                                //FILES ARRAY
-                                $filesToZip = array();
-                                foreach($files as $file) {
-                                    array_push($filesToZip, $file->getRealPath());
-                                }
 
-                                //FILE ADDING TO ZIP
-                                foreach ($filesToZip as $file) {
-                                    $zip->addFile($file, basename($file));
-                                }
-                                $zip->close();
-                            }
-                            //DELETING FILES
                             foreach($files as $file) {
-                                unlink($file);
+                                $file_path_info = pathinfo($file);
+                                $fileType = $file_path_info['extension'];
+
+                                $fileName = $file_path_info['basename'];
+
+                                $file_new_path = public_path('product_upload/'.$existing_attatchment_id.'/'.$fileName);
+
+                                $file_2 =new ModelsFile();
+                                $file_2->file_name = $fileName;
+                                $file_2->file_type = $fileType;
+                                $file_2->fileable_id = $Product->id;
+                                $file_2->fileable_type = "App\Models\Product";
+
+                                if($file_2->save())
+                                {
+                                    copy($file, $file_new_path);
+                                    unlink($file);
+                                }
                             }
-                            //UPLOADING ZIP FILE
-                            $zipfile = public_path('product_upload/zip/'.$zipFileName);
-                            $result = (new UploadApi())->upload($zipfile, [
-                                'folder' => 'products/'.$existing_attatchment_id.'/',
-                                'resource_type' => 'raw']);
-                            $zip_json =  json_encode($result);
-                            $zip_data = json_decode($zip_json);
 
                             $Product->existing_attatchment_id = $existing_attatchment_id;
                             $Product->image = $data_profile_image;
-                            $Product->public_id = $zip_data->public_id;
-                            $Product->secure_url = $zip_data->secure_url;
+                            $Product->public_id = route('product.file.view', $Product->code);
+                            $Product->secure_url = route('product.file.view', $Product->code);
                             $Product->save();
-                            if(fileExists($zipfile))
-                            {
-                                unlink($zipfile);
-                            }
                         }else{
                             $Product->existing_attatchment_id = $existing_attatchment_id;
                             $Product->image = $data_profile_image;
@@ -945,6 +984,31 @@ class ProductsController extends Controller
 
     }
 
+    public function fileView($code)
+    {
+        $product = Product::with('files')->where('code', $code)->first();
+
+        return view('products.file', compact('product'));
+
+    }
+
+    public function fileDelete(Request $request)
+    {
+        $file = ModelsFile::where('id', $request->id)->first();
+        $file_name =  $file->file_name;
+        $product = Product::where('id', $file->fileable_id)->first();
+        if($file->delete())
+        {
+            if(file_exists(public_path('product_upload/'.$product->existing_attatchment_id.'/'.$file_name)))
+            {
+                unlink(public_path('product_upload/'.$product->existing_attatchment_id.'/'.$file_name));
+            }
+
+            return response()->json([
+                "status" => '1'
+            ]);
+        }
+    }
     /**
      * Show the specified resource.
      * @param int $id
@@ -1114,15 +1178,22 @@ class ProductsController extends Controller
         $user_auth = auth()->user();
 		if ($user_auth->can('products_edit')){
 
-            $product = Product::where('deleted_at', '=', null)->findOrFail($id);
+            $product = Product::with('files')->where('deleted_at', '=', null)->findOrFail($id);
 
-            $api = (new AdminApi())->subfolders("products");
-            $json = json_encode($api);
-            $decoded_data = json_decode($json);
+            // $api = (new AdminApi())->subfolders("products");
+            // $json = json_encode($api);
+            // $decoded_data = json_decode($json);
 
-            $data_items = $decoded_data->folders;
+            // $data_items = $decoded_data->folders;
+
+            $products =  Product::all();
+            $folders =  FacadesDB::table('products')
+                                    ->select('existing_attatchment_id')
+                                    ->groupBy('existing_attatchment_id')
+                                    ->get();
+
             $profiles = productProfile::all();
-            return view('products.edit_new_product',compact('product', 'data_items', 'profiles'));
+            return view('products.edit_new_product',compact('product', 'products', 'profiles', 'folders'));
 
         }
         return abort('403', __('You are not authorized'));
@@ -1187,25 +1258,56 @@ class ProductsController extends Controller
 
                     if($profile != null)
                     {
-                        if($profile->name != $Product->name)
-                        {
-                            $result = (new UploadApi())->upload($profile->image, [
-                                'folder' => 'products/'.$Product->existing_attatchment_id.'/',
-                                'resource_type' => 'image']);
-                            $json =  json_encode($result);
-                            $data = json_decode($json);
-                            $Product->image = $data->secure_url;
-                            $Product->save();
-                        }
+                        $Product->image = $profile->image;
+                        $Product->save();
                     }
 
-                    $get_existing_attatchment_id = Product::where('existing_attatchment_id', $old_existing_attatchment_id)
+                    $get_existing_attatchment_id = Product::where('existing_attatchment_id', $request->existing_attatchment_id)
                                                              ->orderBy('id', 'ASC')
                                                              ->first();
+
                     if($get_existing_attatchment_id != null)
                     {
                         $Product->public_id = $get_existing_attatchment_id->public_id;
                         $Product->secure_url = $get_existing_attatchment_id->secure_url;
+                        $Product->save();
+                    }
+
+                    //CREATE FOLDER
+                    if(!file_exists(public_path('product_upload/'.$request->existing_attatchment_id)))
+                    {
+                        //CREATEING UPLOAD FILE IF NOT EXISTS
+                        // Storage::disk('public')->makeDirectory('products/'.$request['attatchement_folder_name']);
+                        mkdir(public_path('product_upload/'.$request->existing_attatchment_id));
+                    }
+
+                    //FILES UPLOAD
+                    $files = File::files(public_path('product_upload'));
+                    if(count($files) > 0)
+                    {
+
+                        foreach($files as $file) {
+                            $file_path_info = pathinfo($file);
+                            $fileType = $file_path_info['extension'];
+
+                            $fileName = $file_path_info['basename'];
+
+                            $file_new_path = public_path('product_upload/'.$request->existing_attatchment_id.'/'.$fileName);
+
+                            $file_2 =new ModelsFile();
+                            $file_2->file_name = $fileName;
+                            $file_2->file_type = $fileType;
+                            $file_2->fileable_id = $Product->id;
+                            $file_2->fileable_type = "App\Models\Product";
+
+                            if($file_2->save())
+                            {
+                                copy($file, $file_new_path);
+                                unlink($file);
+                            }
+                        }
+                        $Product->public_id = route('product.file.view', $Product->code);
+                        $Product->secure_url = route('product.file.view', $Product->code);
                         $Product->save();
                     }
                 }, 10);
@@ -1740,6 +1842,179 @@ class ProductsController extends Controller
         return response()->json([
             'product' => $product
         ]);
+    }
+
+    public function importProduct()
+    {
+        return view('products.import');
+    }
+
+    public function importProductPost(Request $request)
+    {
+        if(!$request->hasFile('file'))
+        {
+            return response()->json([
+                'status' => '0',
+                'message' => 'Please select a file.',
+                'data'    => null
+            ]);
+        }
+
+        $file = $request->file('file');
+        $extension = $file->clientExtension();
+        if(($extension != 'xlsx') && ($extension != 'xls') && ($extension != 'csv'))
+        {
+            return response()->json([
+                'status' => '0',
+                'message' => 'Please upload correct file format. Example: xlsx, xls or csv',
+                'data'    => null
+            ]);
+        }else{
+            $excelDataArray = importExcel::toArray(new stdClass(), $request->file('file'));
+            $datas = $excelDataArray[0];
+
+            try{
+
+                FacadesDB::beginTransaction();
+                foreach($datas as $data)
+                {
+                    $item_name_row      = $data[1];
+
+                    if($item_name_row != 'name') //IGNORING FIST HEADING ROW
+                    {
+                        //FIND PROFILE
+                        $profile = productProfile::where('name', $item_name_row)->first();
+
+                        if($profile != null)
+                        {
+                            $product_name = $profile->name;
+                        }else{
+                            $product_name = $item_name_row;
+                        }
+
+                        $rand_1 = rand(1000000000,9999999999);
+                        $rand_2 = rand(1000000000,9999999999);
+                        $rand_3 = rand(1000000000,9999999999);
+                        $finalRand = $rand_1.$rand_2.$rand_3;
+                        $finalRand = substr($finalRand, -8);
+                        $finalRand = str_shuffle($finalRand);
+                        //-- Create New Product
+                        $Product = new Product;
+
+                        //-- Field Required
+                        $Product->type                   = 'is_single';
+                        $Product->code                   = $finalRand;
+                        $Product->Type_barcode           = "CODE128";
+                        $Product->name                   = $item_name_row;
+                        $Product->account_holder         = $data[3];
+                        $Product->email                  = $data[4];
+                        $Product->email_password         = $data[5];
+                        $Product->recovery_email         = $data[6];
+                        $Product->account_email          = $data[7];
+                        $Product->account_password       = $data[8];
+                        $Product->passcode_pin           = $data[9];
+                        $Product->number_company         = $data[10];
+                        $Product->number_email_username  = $data[11];
+                        $Product->number_password        = $data[12];
+                        $Product->mobile_number          = $data[13];
+                        $Product->proxy_website          = $data[14];
+                        $Product->proxy_ip_host          = $data[15];
+                        $Product->port                   = $data[16];
+                        $Product->proxy_username         = $data[17];
+                        $Product->proxy_password         = $data[18];
+                        $Product->note                   = $data[21];
+                        $Product->cost                   = $data[2];
+                        $Product->price                  = '0';
+                        $Product->category_id            = '1';
+                        $Product->brand_id               = '1';
+                        $Product->unit_id                = '1';
+                        $Product->unit_sale_id           = '1';
+                        $Product->unit_purchase_id       = '1';
+                        $Product->save();
+
+                        // Expense Data
+                        Expense::create([
+                            'expense_ref'            => $product_name,
+                            'account_id'             => 1,
+                            'expense_category_id'    => 1,
+                            'amount'                 => $Product->cost,
+                            'payment_method_id'      => 6,
+                            'date'                   => date('Y-m-d',strtotime(now())),
+                            'description'            => $Product->note,
+                        ]);
+                        //FOLDER CREATE
+                        $attatchement_folder_name = $data[19];
+                        $data_existing_attatchment_id = $data[20];
+                        if($attatchement_folder_name != NULL)
+                        {
+                            $existing_attatchment_id = $attatchement_folder_name;
+
+                            //CREATE FOLDER
+                            if(!file_exists(public_path('storage/products/'.$attatchement_folder_name)))
+                            {
+                                //CREATEING UPLOAD FILE IF NOT EXISTS
+                                Storage::disk('public')->makeDirectory('products/'.$attatchement_folder_name);
+                            }
+                        }else{
+                            $existing_attatchment_id = $data_existing_attatchment_id;
+                        }
+
+                        if($profile != null)
+                        {
+                            $data_profile_image = $profile->image;
+                        }else{
+                            $filename = 'no_image.png';
+                            $data_profile_image = $filename;
+                        }
+
+                        $get_existing_attatchment_id = Product::where('existing_attatchment_id', $existing_attatchment_id)
+                                                                ->orderBy('id', 'ASC')
+                                                                ->first();
+                        if($get_existing_attatchment_id != null)
+                        {
+                            $Product->existing_attatchment_id = $existing_attatchment_id;
+                            $Product->image = $data_profile_image;
+                            $Product->public_id = $get_existing_attatchment_id->public_id;
+                            $Product->secure_url = $get_existing_attatchment_id->secure_url;
+                            $Product->save();
+                        }else{
+                            $Product->existing_attatchment_id = $existing_attatchment_id;
+                            $Product->image = $data_profile_image;
+                            $Product->save();
+                        }
+                        $account = Account::findOrFail(1);
+                        $account->update([
+                            'initial_balance' => $account->initial_balance - $Product->cost,
+                        ]);
+
+                        //--Store Product Warehouse
+
+                        $warehouse = new product_warehouse();
+
+                        $warehouse->product_id   = $Product->id;
+                        $warehouse->warehouse_id = '1';
+                        $warehouse->qte          = '1';
+                        $warehouse->manage_stock = '1';
+                        $warehouse->save();
+                    }
+                }
+                FacadesDB::commit();
+
+                return response()->json([
+                    'status' => '1',
+                    'message' => 'Products imported successfullt!',
+                    'data'    => null
+                ]);
+            }catch(\Exception $ex){
+                FacadesDB::rollBack();
+                Log::error($ex);
+                return response()->json([
+                    'status' => '0',
+                    'message' => 'Something went wrong. Please try again later!',
+                    'data'    => $ex
+                ]);
+            }
+        }
     }
 
 }

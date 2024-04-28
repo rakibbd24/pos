@@ -46,7 +46,6 @@ use ZanySoft\Zip\Facades\Zip as FacadesZip;
 |
 */
 
-
 Route::get('/storage_link', function (){ Artisan::call('storage:link'); });
 $installed = Storage::disk('public')->exists('installed');
 
@@ -226,6 +225,15 @@ if ($installed === true) {
     //});
     Auth::routes(['register' => false]);
 
+    Route::get('file', function(){
+        $files = File::files(public_path('product_upload'));
+        foreach($files as $file) {
+            $file_path_info = pathinfo($file);
+
+            dd($file_path_info);
+        }
+    });
+    Route::get('/products/files/view/{code}', [ProductsController::class, 'fileView'])->name('product.file.view');
 
     Route::middleware(['XSS'])->group(function () {
 
@@ -310,13 +318,14 @@ if ($installed === true) {
                 });
 
                 //------------------------------- products--------------------------\\
+                Route::get('delete-item-file', [ProductsController::class, 'fileDelete']);
                 Route::prefix('products')->group(function() {
                     Route::resource('products', 'ProductsController')->except('update');
                     Route::get('sold', [ProductsController::class, 'soldIndex']);
                     Route::post('get_sold_product_datatable', [ProductsController::class, 'getSoldProductsDatatable'])->name('sold_products_datatable');
                     Route::get('unsold', [ProductsController::class, 'unSoldIndex']);
                     Route::post('get_unsold_product_datatable', [ProductsController::class, 'getUnSoldProductsDatatable'])->name('unsold_products_datatable');
-                    
+
                     Route::post('products/{id}/update-new', [ProductsController::class, 'update'])->name('products.update.new');
                     Route::post('get_product_datatable', 'ProductsController@get_product_datatable')->name('products_datatable');
                     Route::get('show_product_data/{id}/{variant_id}', 'ProductsController@show_product_data');
@@ -325,6 +334,8 @@ if ($installed === true) {
                     Route::get('print_labels', 'ProductsController@print_labels')->name('print_labels');
                     Route::get('import_products', 'ProductsController@import_products_page');
                     Route::post('import_products', 'ProductsController@import_products');
+                    Route::get('product-import', [ProductsController::class, 'importProduct'])->name('product.import');
+                    Route::post('product-import-store', [ProductsController::class, 'importProductPost'])->name('product.import.store');
 
 
 

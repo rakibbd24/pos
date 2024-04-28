@@ -79,4 +79,9 @@ class Product extends Model
         return $this->belongsTo(Brand::class);
     }
 
+    public function files()
+    {
+        return $this->morphMany(File::class, 'fileable');
+    }
+
 }

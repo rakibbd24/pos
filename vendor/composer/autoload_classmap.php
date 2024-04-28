@@ -90,6 +90,7 @@ return array(
     'App\\Models\\EmailMessage' => $baseDir . '/app/Models/EmailMessage.php',
     'App\\Models\\Expense' => $baseDir . '/app/Models/Expense.php',
     'App\\Models\\ExpenseCategory' => $baseDir . '/app/Models/ExpenseCategory.php',
+    'App\\Models\\File' => $baseDir . '/app/Models/File.php',
     'App\\Models\\PaymentMethod' => $baseDir . '/app/Models/PaymentMethod.php',
     'App\\Models\\PaymentPurchase' => $baseDir . '/app/Models/PaymentPurchase.php',
     'App\\Models\\PaymentPurchaseReturns' => $baseDir . '/app/Models/PaymentPurchaseReturns.php',
