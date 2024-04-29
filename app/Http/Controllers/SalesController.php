@@ -534,6 +534,7 @@ class SalesController extends Controller
 
             foreach ($sale_data['details'] as $detail) {
 
+                $data['product_id'] = $detail->product_id;
                 $unit = Unit::where('id', $detail->sale_unit_id)->first();
                 if ($detail->product_variant_id) {
 
@@ -1054,7 +1055,7 @@ class SalesController extends Controller
 
                 \DB::transaction(function () use ($id) {
                     $current_Sale = Sale::findOrFail($id);
-                    $old_sale_details = SaleDetail::where('sale_id', $id)->get();
+                    $old_sale_details = SaleDetail::with('product')->where('sale_id', $id)->get();
 
                     foreach ($old_sale_details as $key => $value) {
 
@@ -1093,6 +1094,29 @@ class SalesController extends Controller
 
                     }
 
+                    foreach($old_sale_details as $sale_data)
+                    {
+                        $product = Product::where('id', $sale_data->product_id)->first();
+
+                        if(!empty($product))
+                        {
+                            $product->sold = "0";
+                            $product->save();
+                        }
+                    }
+
+                    //DEPOSIT
+                    $old_sale_details = SaleDetail::with('product')->where('sale_id', $id)->first();
+                    Deposit::create([
+                        'deposit_ref'            => $old_sale_details->product->name,
+                        'account_id'             => 3,
+                        'deposit_category_id'    => 1,
+                        'amount'                 => -($current_Sale->paid_amount),
+                        'payment_method_id'      => 6,
+                        'date'                   => date('Y-m-d',strtotime(now())),
+                        'description'            => null
+                    ]);
+
                     $current_Sale->details()->delete();
                     $current_Sale->update([
                         'deleted_at' => Carbon::now(),
@@ -1116,7 +1140,6 @@ class SalesController extends Controller
                      PaymentSale::where('sale_id', $id)->update([
                         'deleted_at' => Carbon::now(),
                     ]);
-
 
                 }, 10);
 

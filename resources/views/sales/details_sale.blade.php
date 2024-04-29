@@ -1,6 +1,45 @@
 @extends('layouts.master')
 @section('main-content')
 @section('page-css')
+<style>
+    .tooltip1 {
+      position: relative;
+      display: inline-block;
+    }
+
+    .tooltip1 .tooltiptext {
+      visibility: hidden;
+      width: 140px;
+      background-color: #555;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px;
+      position: absolute;
+      z-index: 1;
+      bottom: 150%;
+      left: 50%;
+      margin-left: -75px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .tooltip1 .tooltiptext::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: #555 transparent transparent transparent;
+    }
+
+    .tooltip1:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+    </style>
 @endsection
 
 <div class="breadcrumb">
@@ -36,6 +75,11 @@
     <a href="#" data-bs-toggle="modal" data-bs-target="#attatchment_modal" class="btn-sm btn btn-secondary ripple btn-icon m-1" onclick="openAttatchmentModal({{ $sale['id'] }})">
         <i class="i-File-TXT"></i> Download Attatchments
     </a>
+
+    <a href="#" data-bs-toggle="modal" data-bs-target="#item_details_modal" class="btn-sm btn btn-secondary ripple btn-icon m-1">
+        <i class="i-File-TXT"></i> Item Details
+    </a>
+
     <a onclick="printDiv()" class="btn-sm btn btn-warning ripple btn-icon m-1">
       <i class="i-Billing"></i>
       {{ __('translate.Print_Sale') }}
@@ -108,7 +152,8 @@
                 </thead>
                 <tbody>
                   <tr v-for="detail in details">
-                    <td><span>@{{detail.code}} (@{{detail.name}})</span>
+                    <td>
+                        <span>@{{detail.code}} (@{{detail.name}})</span>
                       <p v-show="detail.is_imei && detail.imei_number !==null ">IMEI_SN : @{{detail.imei_number}}
                       </p>
                     </td>
@@ -129,7 +174,9 @@
                 <tr>
                   <td class="bold">{{ __('translate.Order_Tax') }}</td>
                   <td>
-                    <span>@{{sale.TaxNet}} (@{{formatNumber(sale.tax_rate ,2)}} %)</span>
+                    <a href="#">
+                        <span>@{{sale.TaxNet}} (@{{formatNumber(sale.tax_rate ,2)}} %)</span>
+                    </a>
                   </td>
                 </tr>
                 <tr>
@@ -202,6 +249,60 @@
                             </td>
                         @endforeach
                     </tr>
+                </table>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="item_details_modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Item Details
+            </h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered" id="item_details_copy">
+                    @foreach($sale_items->details as $item_data)
+                        <tr>
+                            <th class="text-center">
+                                {{ $item_data->product->name }}
+                            </th>
+                        </tr>
+                        <tr>
+                            <td>
+                                <h4>Email Access Details</h4>
+                                <b>Email:</b> {{$item_data->product->email ?? 'N/A'}}
+                                <br><b>Email Password:</b> {{$item_data->product->email_password ?? 'N/A'}}
+                                <br><b>Recovery Email:</b> {{$item_data->product->recovery_email ?? 'N/A'}}
+
+                                <h4 class="mt-2">Account Access Details</h4>
+                                <b>Account Email:</b> {{$item_data->product->account_email ?? 'N/A'}}
+                                <br><b>Account Password:</b> {{$item_data->product->account_password ?? 'N/A'}}
+                                <br><b>Passcode Or Pin:</b> {{$item_data->product->passcode_pin ?? 'N/A'}}
+
+                                <h4 class="mt-2">Number Access Details</h4>
+                                <b>Number Company:</b> {{$item_data->product->number_company ?? 'N/A'}}
+                                <br><b>Phone Number:</b> {{$item_data->product->mobile_number ?? 'N/A'}}
+                                <br><b>Username Or Email:</b> {{$item_data->product->number_email_username ?? 'N/A'}}
+                                <br><b>Password For Number:</b> {{$item_data->product->number_password ?? 'N/A'}}
+
+                                <h4 class="mt-2">Proxy Access Details</h4>
+                                <b>Proxy Website:</b> {{$item_data->product->proxy_website ?? 'N/A'}}
+                                <br><b>Proxy IP Or Host:</b> {{$item_data->product->proxy_ip_host ?? 'N/A'}}
+                                <br><b>Proxy Port:</b> {{$item_data->product->port ?? 'N/A'}}
+                                <br><b>Proxy Username:</b> {{$item_data->product->proxy_username ?? 'N/A'}}
+                                <br><b>Proxy Password:</b> {{$item_data->product->proxy_password ?? 'N/A'}}
+
+                                <h4 class="mt-2">Addisional Details</h4>
+                                <p>
+                                    {{$item_data->product->note ?? ''}}
+                                </p>
+                            </td>
+                        </tr>
+                    @endforeach
                 </table>
             </div>
         </div>

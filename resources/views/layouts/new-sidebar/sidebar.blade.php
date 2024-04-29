@@ -175,6 +175,13 @@
                                         'title'=> __('translate.AddProduct')
                                     ])
                                 </li>
+
+                                <li>
+                                    @include('components.sidebar.child-navitem', [
+                                        'href'=>'/products/product-import',
+                                        'title'=> 'Import Product'
+                                    ])
+                                </li>
                             @endcan
                             {{-- @can('print_labels')
                                 <li>

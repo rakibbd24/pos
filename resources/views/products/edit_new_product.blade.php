@@ -62,10 +62,15 @@
                         </div>
 
                         <div class="form-group col-md-4">
-                            <label for="account_holder">Account Holder<span
+                            <label for="p_account_holder">Account Holder<span
                                     class="field_required">*</span></label>
-                            <input type="text" class="form-control"
-                                placeholder="Account Holder" name="account_holder" value="{{ $product->account_holder }}" required>
+                           <select name="account_holder" id="p_account_holder">
+                                <option value="">Select Account Holder</option>
+                                <option value="{{ $product->account_holder }}" selected="selected">{{ $product->account_holder }}</option>
+                                @foreach ($products as $pdata)
+                                    <option value="{{ $pdata->account_holder }}">{{ $pdata->account_holder }}</option>
+                                @endforeach
+                           </select>
                         </div>
 
                         <div class="form-group col-md-4">
@@ -238,17 +243,45 @@
                             <label>Use existing attatchment</label>
                             <select name="existing_attatchment_id" id="p_att">
                                 <option value="">Select existing attatchment</option>
-                                @foreach ($data_items as $ditem)
-                                <option value="{{ $ditem->name }}" @if($product->existing_attatchment_id == $ditem->name) selected="selected" @endif>{{ $ditem->name }}</option>
+                                @foreach ($folders as $ditem)
+                                    <option value="{{ $ditem->existing_attatchment_id }}" @if($product->existing_attatchment_id == $ditem->existing_attatchment_id) selected="selected" @endif>{{ $ditem->existing_attatchment_id }}</option>
                                 @endforeach
                             </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <table class="table table-bordered" id="item_files_table">
+                                    <tr>
+                                        <th colspan="3" class="text-center bg-light">Files</th>
+                                    </tr>
+                                    @if(count($product->files)> 0)
+                                        @foreach($product->files as $data)
+                                            <tr id="file_row{{ $data->id }}">
+                                                <td>
+                                                    {{ $data->file_name }}
+                                                </td>
+                                                <td>
+                                                    <a target="_new" href="{{ asset('product_upload/'.$product->existing_attatchment_id.'/'.$data->file_name) }}">Download</a>
+                                                </td>
+                                                <td>
+                                                    <a href="javascript:;" class="text-denger" onclick="deleteFile({{ $data->id }})">Delete</a>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    @else
+                                        <tr>
+                                            <td colspan="3" class="text-center text-warning">No File Found</td>
+                                        </tr>
+                                    @endif
+                                </table>
+                            </div>
                         </div>
                         <div class="form-group col-md-12 mb-4">
                             <label for="note">{{ __('translate.Please_provide_any_details') }} </label>
                             <textarea type="text" class="form-control" name="note"
                                 placeholder="{{ __('translate.Please_provide_any_details') }}">{{ $product->note }}</textarea>
                         </div>
-                        <div class="col-12 d-none">
+                        <div class="col-12">
                             <div class="dropzone dropzone-previews" id="drzone"></div>
                         </div>
                         <div class="col-12 d-none">
@@ -306,6 +339,32 @@
         $("#p_profile").selectize({
                         create: true,
                         });
+
+                        $("#p_account_holder").selectize({
+                        create: true,
+                        });
         });
+
+        function deleteFile(id)
+        {
+            var ok = confirm("Are you sure you want to delete the selected file?");
+
+            if(ok)
+            {
+                var app_url = "{{ url('') }}";
+                $(`#item_files_table #file_row${id}`).remove();
+                $.ajax({
+                    url: app_url + '/delete-item-file',
+                    method: 'GET',
+                    data: {
+                        id: id,
+                    },
+                    dataType: 'json',
+                    success:function(response){
+                        $(`#item_files_table #file_row${id}`).remove();
+                    }
+                });
+            }
+        }
     </script>
 @endsection
