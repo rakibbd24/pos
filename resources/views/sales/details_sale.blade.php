@@ -255,61 +255,57 @@
         </div>
     </div>
 
-    <div class="modal fade" id="item_details_modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+   <div class="modal fade" id="item_details_modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-            <h1 class="modal-title fs-5" id="exampleModalLabel">Item Details
-            </h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Item Details</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <table class="table table-bordered" id="item_details_copy">
                     @foreach($sale_items->details as $item_data)
                         <tr>
                             <th class="text-center">
-                               ╔═══════════ {{$item_data->product->name}}═══════════╗
-                            </th><br>
+                               <pre>╔═══════════ {{$item_data->product->name}} ═══════════╗</pre>
+                            </th>
                         </tr>
                         <tr>
                             <td>
                                 <h4>Email Access Details:</h4>
-                                <b>📧Email:</b> {{$item_data->product->email ?? 'N/A'}}
-                                <br>🔓<b>Email Password:</b> {{$item_data->product->email_password ?? 'N/A'}}
-                                <br>📧<b>Recovery Email:</b> {{$item_data->product->recovery_email ?? 'N/A'}}<br>
+                                <pre>📧 Email:</pre> {{$item_data->product->email ?? 'N/A'}}<br>
+                                <pre>🔓 Email Password:</pre> {{$item_data->product->email_password ?? 'N/A'}}<br>
+                                <pre>📧 Recovery Email:</pre> {{$item_data->product->recovery_email ?? 'N/A'}}<br>
 
                                 <h4 class="mt-2">Account Access Details:</h4>
-                                <b>📧Account Email:</b> {{$item_data->product->account_email ?? 'N/A'}}
-                                <br><b>🔒Account Password:</b> {{$item_data->product->account_password ?? 'N/A'}}
-                                <br><b>🔑Passcode Or Pin:</b> {{$item_data->product->passcode_pin ?? 'N/A'}}<br>
+                                <pre>📧 Account Email:</pre> {{$item_data->product->account_email ?? 'N/A'}}<br>
+                                <pre>🔒 Account Password:</pre> {{$item_data->product->account_password ?? 'N/A'}}<br>
+                                <pre>🔑 Passcode Or Pin:</pre> {{$item_data->product->passcode_pin ?? 'N/A'}}<br>
 
                                 <h4 class="mt-2">Number Access Details:</h4>
-                                <b>📞Number Company:</b> {{$item_data->product->number_company ?? 'N/A'}}
-                                <br><b>📱Phone Number:</b> {{$item_data->product->mobile_number ?? 'N/A'}}
-                                <br><b>📧Username Or Email:</b> {{$item_data->product->number_email_username ?? 'N/A'}}
-                                <br><b>🔑Password For Number:</b> {{$item_data->product->number_password ?? 'N/A'}}<br>
+                                <pre>📞 Number Company:</pre> {{$item_data->product->number_company ?? 'N/A'}}<br>
+                                <pre>📱 Phone Number:</pre> {{$item_data->product->mobile_number ?? 'N/A'}}<br>
+                                <pre>📧 Username Or Email:</pre> {{$item_data->product->number_email_username ?? 'N/A'}}<br>
+                                <pre>🔑 Password For Number:</pre> {{$item_data->product->number_password ?? 'N/A'}}<br>
 
-                                <h4 class="mt-2">Proxy Access Details</h4>
-                                <b>🌐Proxy Website:</b> {{$item_data->product->proxy_website ?? 'N/A'}}
-                                <br><b>🌐Proxy IP Or Host:</b> {{$item_data->product->proxy_ip_host ?? 'N/A'}}
-                                <br><b>🌐Proxy Port:</b> {{$item_data->product->port ?? 'N/A'}}
-                                <br><b>🔐Proxy Username:</b> {{$item_data->product->proxy_username ?? 'N/A'}}
-                                <br><b>🔓Proxy Password:</b> {{$item_data->product->proxy_password ?? 'N/A'}}<br>
+                                <h4 class="mt-2">Proxy Access Details:</h4>
+                                <pre>🌐 Proxy Website:</pre> {{$item_data->product->proxy_website ?? 'N/A'}}<br>
+                                <pre>🌐 Proxy IP Or Host:</pre> {{$item_data->product->proxy_ip_host ?? 'N/A'}}<br>
+                                <pre>🌐 Proxy Port:</pre> {{$item_data->product->port ?? 'N/A'}}<br>
+                                <pre>🔐 Proxy Username:</pre> {{$item_data->product->proxy_username ?? 'N/A'}}<br>
+                                <pre>🔓 Proxy Password:</pre> {{$item_data->product->proxy_password ?? 'N/A'}}<br>
 
                                 <h4 class="mt-2">Additional Details:</h4>
-                                <p>
-                                    {{$item_data->product->note ?? ''}}
-                                </p>
+                                <pre>{{$item_data->product->note ?? ''}}</pre>
                             </td>
                         </tr>
                     @endforeach
                 </table>
             </div>
         </div>
-        </div>
     </div>
-  </div>
 </div>
+
 
 @endsection
 
