@@ -269,32 +269,32 @@
                         <tr>
                             <th class="text-center">
                                ╔═══════════ {{$item_data->product->name}}═══════════╗
-                            </th>
+                            </th><br>
                         </tr>
                         <tr>
                             <td>
                                 <h4>Email Access Details:</h4>
                                 <b>📧Email:</b> {{$item_data->product->email ?? 'N/A'}}
                                 <br>🔓<b>Email Password:</b> {{$item_data->product->email_password ?? 'N/A'}}
-                                <br>📧<b>Recovery Email:</b> {{$item_data->product->recovery_email ?? 'N/A'}}
+                                <br>📧<b>Recovery Email:</b> {{$item_data->product->recovery_email ?? 'N/A'}}<br>
 
                                 <h4 class="mt-2">Account Access Details:</h4>
                                 <b>📧Account Email:</b> {{$item_data->product->account_email ?? 'N/A'}}
                                 <br><b>🔒Account Password:</b> {{$item_data->product->account_password ?? 'N/A'}}
-                                <br><b>🔑Passcode Or Pin:</b> {{$item_data->product->passcode_pin ?? 'N/A'}}
+                                <br><b>🔑Passcode Or Pin:</b> {{$item_data->product->passcode_pin ?? 'N/A'}}<br>
 
                                 <h4 class="mt-2">Number Access Details:</h4>
                                 <b>📞Number Company:</b> {{$item_data->product->number_company ?? 'N/A'}}
                                 <br><b>📱Phone Number:</b> {{$item_data->product->mobile_number ?? 'N/A'}}
                                 <br><b>📧Username Or Email:</b> {{$item_data->product->number_email_username ?? 'N/A'}}
-                                <br><b>🔑Password For Number:</b> {{$item_data->product->number_password ?? 'N/A'}}
+                                <br><b>🔑Password For Number:</b> {{$item_data->product->number_password ?? 'N/A'}}<br>
 
                                 <h4 class="mt-2">Proxy Access Details</h4>
                                 <b>🌐Proxy Website:</b> {{$item_data->product->proxy_website ?? 'N/A'}}
                                 <br><b>🌐Proxy IP Or Host:</b> {{$item_data->product->proxy_ip_host ?? 'N/A'}}
                                 <br><b>🌐Proxy Port:</b> {{$item_data->product->port ?? 'N/A'}}
                                 <br><b>🔐Proxy Username:</b> {{$item_data->product->proxy_username ?? 'N/A'}}
-                                <br><b>🔓Proxy Password:</b> {{$item_data->product->proxy_password ?? 'N/A'}}
+                                <br><b>🔓Proxy Password:</b> {{$item_data->product->proxy_password ?? 'N/A'}}<br>
 
                                 <h4 class="mt-2">Additional Details:</h4>
                                 <p>
